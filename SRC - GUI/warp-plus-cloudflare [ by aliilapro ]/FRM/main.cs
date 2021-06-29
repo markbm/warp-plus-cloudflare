@@ -33,9 +33,21 @@ namespace warp_plus_cloudflare___by_aliilapro__.FRM
             }
             return _re;
         }
+
+        private string GenRndNum(int len)
+        {
+            string num = "0123456789";
+            string num2 = "";
+            while (num2.Length < len)
+            {
+                num2 += num[rnd.Next(0, num.Length - 1)].ToString();
+            }
+            return num2;
+        }
+
         private void ch_hideid_CheckedChanged(object sender, EventArgs e)
         {
-            bool @true = this.ch_hideid.Checked;
+            bool @true = ch_hideid.Checked;
             if (@true)
             {
                 txtid.PasswordChar = '*';
@@ -48,7 +60,7 @@ namespace warp_plus_cloudflare___by_aliilapro__.FRM
 
         private void ch_proxy_CheckedChanged(object sender, EventArgs e)
         {
-            bool @true = this.ch_proxy.Checked;
+            bool @true = ch_proxy.Checked;
             if (@true)
             {
                 btnloadproxy.Enabled = true;
@@ -66,21 +78,21 @@ namespace warp_plus_cloudflare___by_aliilapro__.FRM
             OpenFileDialog openFileDialog = new OpenFileDialog();
             openFileDialog.Filter = "Text File (*.txt)|*.txt|All File (*.*)|*.*";
             openFileDialog.Title = "Open Proxylist ( ONLY HTTP-S )";
-            this.ProxyList.Clear();
+            ProxyList.Clear();
             if (openFileDialog.ShowDialog() == DialogResult.OK)
             {
-                this.ProxyList.AddRange(File.ReadAllLines(openFileDialog.FileName));
-                this.lblproxy.Text = this.ProxyList.Count.ToString();
+                ProxyList.AddRange(File.ReadAllLines(openFileDialog.FileName));
+                lblproxy.Text = ProxyList.Count.ToString();
             }
         }
 
         private void btngetproxy_Click(object sender, EventArgs e)
         {
-            this.ProxyList.Clear();
-            this.lblproxy.Text = "0";
+            ProxyList.Clear();
+            lblproxy.Text = "0";
             try
             {
-                HttpWebResponse response = (HttpWebResponse)((HttpWebRequest)WebRequest.Create("https://api.proxyscrape.com?request=getproxies&proxytype=http&timeout=10000&country=all&ssl=all&anonymity=all")).GetResponse();
+                HttpWebResponse response = (HttpWebResponse)((HttpWebRequest)WebRequest.Create("https://api.proxyscrape.com/v2/?request=getproxies&protocol=http&timeout=10000&country=all&ssl=all&anonymity=all")).GetResponse();
                 string end = new StreamReader(response.GetResponseStream()).ReadToEnd();
                 MatchCollection matchCollections = new Regex("[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}:[0-9]{1,5}").Matches(end);
                 try
@@ -90,7 +102,7 @@ namespace warp_plus_cloudflare___by_aliilapro__.FRM
                         foreach (object obj in matchCollections)
                         {
                             Match objectValue = (Match)RuntimeHelpers.GetObjectValue(obj);
-                            this.ProxyList.Add(objectValue.Value);
+                            ProxyList.Add(objectValue.Value);
                         }
                     }
                     finally
@@ -100,13 +112,13 @@ namespace warp_plus_cloudflare___by_aliilapro__.FRM
                 finally
                 {
                 }
-                int List = this.ProxyList.Count;
-                this.lblproxy.Text = string.Concat(new string[]
+                int List = ProxyList.Count;
+                lblproxy.Text = string.Concat(new string[]
                 {
                     List.ToString()
                 });
-                List = this.ProxyList.Count;
-                this.lblproxy.Text = List.ToString();
+                List = ProxyList.Count;
+                lblproxy.Text = List.ToString();
             }
             catch (Exception error)
             {
@@ -116,19 +128,19 @@ namespace warp_plus_cloudflare___by_aliilapro__.FRM
 
         private void btnstart_Click(object sender, EventArgs e)
         {
-            if (this.ProxyList.Count != 0)
+            if (ProxyList.Count != 0)
             {
-                this._start = true;
-                int num = Convert.ToInt32(this.speed.Text);
+                _start = true;
+                int num = Convert.ToInt32(speed.Text);
                 ThreadPool.SetMinThreads(num, num);
                 ThreadPool.SetMaxThreads(num, num);
                 try
                 {
-                    List<string>.Enumerator enumerator = this.ProxyList.GetEnumerator();
+                    List<string>.Enumerator enumerator = ProxyList.GetEnumerator();
                     while (enumerator.MoveNext())
                     {
                         string current = enumerator.Current;
-                        ThreadPool.QueueUserWorkItem(new WaitCallback(this.mtd), current);
+                        ThreadPool.QueueUserWorkItem(new WaitCallback(mtd), current);
                     }
                 }
                 catch (Exception error)
@@ -147,7 +159,7 @@ namespace warp_plus_cloudflare___by_aliilapro__.FRM
 
         private void mtd(object Proxiess)
         {
-            bool start = this._start;
+            bool start = _start;
 
             if (start)
             {
@@ -162,7 +174,7 @@ namespace warp_plus_cloudflare___by_aliilapro__.FRM
                         ':'
                     })[1];
                     WebProxy proxy = new WebProxy(host, Convert.ToInt32(value));
-                    HttpWebRequest httpWebRequest = (HttpWebRequest)WebRequest.Create("https://api.cloudflareclient.com/v0a745/reg");
+                    HttpWebRequest httpWebRequest = (HttpWebRequest)WebRequest.Create($"https://api.cloudflareclient.com/v0a{GenRndNum(3)}/reg");
                     httpWebRequest.ContentType = "application/json";
                     httpWebRequest.Method = "POST";
                     httpWebRequest.Headers.Add("Accept-Encoding", "gzip");
@@ -171,13 +183,13 @@ namespace warp_plus_cloudflare___by_aliilapro__.FRM
                     httpWebRequest.KeepAlive = true;
                     httpWebRequest.UserAgent = "okhttp/3.12.1";
                     httpWebRequest.Proxy = proxy;
-                    string install_id = this.GenerateUniqCode(22);
-                    string key        = this.GenerateUniqCode(43) + "=";
-                    string tos        = DateTime.UtcNow.ToString("yyyy-MM-ddTHH\\:mm\\:ss.fff") + "+07:00";
-                    string fcm_token  = install_id + ":APA91b" + this.GenerateUniqCode(134);
-                    string referer    = this.txtid.Text;
-                    string type       = "Android";
-                    string locale     = "en-GB";
+                    string install_id = GenerateUniqCode(22);
+                    string key = GenerateUniqCode(43) + "=";
+                    string tos = DateTime.UtcNow.ToString("yyyy-MM-ddTHH\\:mm\\:ss.fff") + "+07:00";
+                    string fcm_token = install_id + ":APA91b" + GenerateUniqCode(134);
+                    string referer = txtid.Text;
+                    string type = "Android";
+                    string locale = "en-GB";
                     var body = new
                     {
                         install_id = install_id,
@@ -200,18 +212,18 @@ namespace warp_plus_cloudflare___by_aliilapro__.FRM
                         string result = sw.ReadToEnd();
                     }
                     httpResponse = null;
-                    this._test++;
-                    this._send++;
-                    this.lblgood.Text = this._send.ToString();
-                    this.lbltest.Text = this._test.ToString();
-                    this.lblgb.Text = lblgood.Text + " GB Successfully added to your account.";
+                    _test++;
+                    _send++;
+                    lblgood.Text = _send.ToString();
+                    lbltest.Text = _test.ToString();
+                    lblgb.Text = lblgood.Text + " GB Successfully added to your account.";
                 }
                 catch
                 {
-                    this._test++;
-                    this._error++;
-                    this.lblbad.Text = this._error.ToString();
-                    this.lbltest.Text = this._test.ToString();
+                    _test++;
+                    _error++;
+                    lblbad.Text = _error.ToString();
+                    lbltest.Text = _test.ToString();
                 }
 
             }
@@ -219,7 +231,7 @@ namespace warp_plus_cloudflare___by_aliilapro__.FRM
 
         private void btnstop_Click(object sender, EventArgs e)
         {
-            this._start = false;
+            _start = false;
         }
 
         private void telegramToolStripMenuItem_Click(object sender, EventArgs e)
